@@ -18,7 +18,7 @@ const sendErrorsFromDB = (res, dbErrors) => {
 
 const login = (req, res, next) => {
     const email = req.body.email || '';
-    const password = req.body.email || '';
+    const password = req.body.password || '';
 
     User.findOne({
         email
@@ -27,7 +27,7 @@ const login = (req, res, next) => {
             return sendErrorsFromDB(req, err);
         } else if (user && bcrypt.compareSync(password, user.password)) {
             const token = jwt.sign(user, env.authSecret, {
-                expireIn: '1 day'
+                expiresIn: '1 day'
             });
             const {
                 name,
@@ -60,7 +60,7 @@ const singup = (req, res, next) => {
     const name = req.body.name || '';
     const email = req.body.email || '';
     const password = req.body.password || '';
-    const confirmPassword = req.body.confirmPassword || '';
+    const confirmPassword = req.body.confirm_password || '';
 
     if (!email.match(emailRegex)) {
         return res.status(400).send({
@@ -68,18 +68,18 @@ const singup = (req, res, next) => {
         });
     }
 
-    if (!password.match(emailRegex)) {
+    if (!password.match(passwordRegex)) {
         return res.status(400).send({
             errors: ['A senha precisa ter entre 1 e 20 caracteres']
         });
     }
 
-    const salt = bcrypt.genSaltSync();
-    const passwordHash = bcrypt.hashSync(password, salt);
+    const salt = bcrypt.genSaltSync()
+    const passwordHash = bcrypt.hashSync(password, salt)
     if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
         return res.status(400).send({
-            errors: ['As senhas não conferem']
-        });
+            errors: ['Senhas não conferem.']
+        })
     }
 
     User.findOne({
