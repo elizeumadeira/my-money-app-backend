@@ -25,54 +25,73 @@ BillingCycle.route('count', (req, res, next) => {
     });
 });
 
-// BillingCycle.route('summary', (req, res, next) => {
-//     BillingCycle.aggregate({
-//         $project: {credit: {$sum: "$credits.value"}, debt: {$sum: "$debts.value"}}
-//     }, {
-//         $group: {_id: null,credit: {$sum: "$credit"}, debt: {$sum: "$debt"}}
-//     }, {
-//         $project: {_id: 0,credit: 1,debt: 1}
-//     }, (error, result) => {
-//         if (error) {
-//             res.status(500).json({
-//                 errors: [error]
-//             });
-//         } else {
-//             res.json(result[0] || {
-//                 credit: 0,
-//                 debt: 0
-//             })
-//         }
-//     });
-// });
-
-
-BillingCycle.route('summary', (req, res) => {
-    BillingCycle.find().exec(function (err, billingCollenction) {
-        var summary = {
-            credit: 0,
-            debt: 0
-        };
-        billingCollenction.map(function (billing) {
-            var credit = 0;
-            var debt = 0;
-            billing.credits.forEach(function (credito) {
-                credit += credito.value;
-            });
-
-            billing.debts.forEach(function (debito) {
-                debt += debito.value;
-            });
-            return {
-                credit,
-                debt
+BillingCycle.route('summary', (req, res, next) => {
+    BillingCycle.aggregate([{
+        $project: {
+            credit: {
+                $sum: "$credits.value"
+            },
+            debt: {
+                $sum: "$debts.value"
             }
-        }).forEach(function (el) {
-            summary.credit += el.credit;
-            summary.debt += el.debt;
-        });
-        res.json(summary);
+        }
+    }, {
+        $group: {
+            _id: null,
+            credit: {
+                $sum: "$credit"
+            },
+            debt: {
+                $sum: "$debt"
+            }
+        }
+    }, {
+        $project: {
+            _id: 0,
+            credit: 1,
+            debt: 1
+        }
+    }]).exec((error, result) => {
+        if (error) {
+            res.status(500).json({
+                errors: [error]
+            });
+        } else {
+            res.json(result[0] || {
+                credit: 0,
+                debt: 0
+            })
+        }
     });
 });
+
+
+// BillingCycle.route('summary', (req, res) => {
+//     BillingCycle.find().exec(function (err, billingCollenction) {
+//         var summary = {
+//             credit: 0,
+//             debt: 0
+//         };
+//         billingCollenction.map(function (billing) {
+//             var credit = 0;
+//             var debt = 0;
+//             billing.credits.forEach(function (credito) {
+//                 credit += credito.value;
+//             });
+
+//             billing.debts.forEach(function (debito) {
+//                 debt += debito.value;
+//             });
+//             return {
+//                 credit,
+//                 debt
+//             }
+//         }).forEach(function (el) {
+//             summary.credit += el.credit;
+//             summary.debt += el.debt;
+//         });
+//         res.json(summary);
+//     });
+// });
 
 module.exports = BillingCycle;
